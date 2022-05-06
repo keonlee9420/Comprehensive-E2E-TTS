@@ -1,0 +1,38 @@
+seed: 1234
+ignore_layers: [] # ["speaker_emb"]
+dist_config:
+  dist_backend: "nccl"
+  dist_url: "tcp://localhost:65432"
+  world_size: 1
+path:
+  ckpt_path: "./output/ckpt/VCTK"
+  log_path: "./output/log/VCTK"
+  result_path: "./output/result/VCTK"
+optimizer:
+  batch_size: 16
+  betas: [0.8, 0.99]
+  gamma: 0.999
+  init_lr_M: 0.0002
+  init_lr_D: 0.0002
+  grad_clip_thresh: 1.0
+  grad_acc_step: 1
+loss:
+  dur_loss: "mse"
+  pitch_loss: "l1"
+  lambda_f0: 1.0
+  lambda_uv: 1.0
+  lambda_ph_dur: 1.0
+  lambda_word_dur: 1.0
+  lambda_sent_dur: 1.0
+  fft_sizes: [1024]
+step:
+  total_step: 900000
+  log_step: 100
+  synth_step: 1000
+  val_step: 1000
+  save_step: 10000
+  var_start_steps: 50000 # set 1 when multi GPUs setting
+duration:
+  binarization_start_steps: 6000
+  binarization_loss_enable_steps: 18000
+  binarization_loss_warmup_steps: 10000

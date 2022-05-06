@@ -1,0 +1,50 @@
+external_speaker_dim: 512
+
+transformer:
+  encoder_layer: 4
+  encoder_head: 2
+  encoder_hidden: 256
+  decoder_layer: 6
+  decoder_head: 2
+  decoder_hidden: 256
+  ffn_kernel_size: 9
+  encoder_dropout: 0.1
+  decoder_dropout: 0.1
+  ffn_padding: "SAME"
+  ffn_act: "gelu"
+
+duration_modeling:
+  aligner_temperature: 0.0005
+
+variance_predictor:
+  filter_size: 256
+  predictor_grad: 0.1
+  predictor_layers: 2
+  predictor_kernel: 5
+  dur_predictor_layers: 2
+  dur_predictor_kernel: 3
+  dropout: 0.5
+
+variance_embedding:
+  use_pitch_embed: True
+  pitch_n_bins: 300
+  use_energy_embed: True
+  energy_n_bins: 256
+  energy_quantization: "linear" # support 'linear' or 'log', 'log' is allowed only if the energy values are not normalized during preprocessing
+
+generator:
+  lrelu_slope: 0.1
+  resblock: "1"
+  upsample_rates: [8,8,2,2]
+  upsample_kernel_sizes: [16,16,4,4]
+  upsample_initial_channel: 512
+  resblock_kernel_sizes: [3,7,11]
+  resblock_dilation_sizes: [[1,3,5], [1,3,5], [1,3,5]]
+
+discriminator:
+  use_mpd: False
+  lrelu_slope: 0.1
+
+multi_speaker: True
+
+max_seq_len: 1500 # max sequence length of VCTK is 1426
