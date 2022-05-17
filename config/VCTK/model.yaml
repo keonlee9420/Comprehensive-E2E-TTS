@@ -47,4 +47,4 @@ discriminator:
 
 multi_speaker: True
 
-max_seq_len: 1500 # max sequence length of VCTK is 1426
+max_seq_len: 1350 # max sequence length of VCTK is 1298

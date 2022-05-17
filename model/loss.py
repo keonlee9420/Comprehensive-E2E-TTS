@@ -96,12 +96,12 @@ class E2ETTSLoss(nn.Module):
         # use linear scale for sent and word duration
         if self.loss_config["lambda_word_dur"] > 0:
             word_id = (is_sil.cumsum(-1) * (1 - is_sil)).long()
-            if (word_id != 0.).any():
-                word_dur_p = dur_pred.new_zeros([B, word_id.max() + 1]).scatter_add(1, word_id, dur_pred)[:, 1:]
-                word_dur_g = dur_gt.new_zeros([B, word_id.max() + 1]).scatter_add(1, word_id, dur_gt)[:, 1:]
-                wdur_loss = F.mse_loss((word_dur_p + 1).log(), (word_dur_g + 1).log(), reduction="none")
-                word_nonpadding = (word_dur_g > 0).float()
-                wdur_loss = (wdur_loss * word_nonpadding).sum() / word_nonpadding.sum()
+            word_dur_p = dur_pred.new_zeros([B, word_id.max() + 1]).scatter_add(1, word_id, dur_pred)[:, 1:]
+            word_dur_g = dur_gt.new_zeros([B, word_id.max() + 1]).scatter_add(1, word_id, dur_gt)[:, 1:]
+            wdur_loss = F.mse_loss((word_dur_p + 1).log(), (word_dur_g + 1).log(), reduction="none")
+            word_nonpadding = (word_dur_g > 0).float()
+            wdur_loss = (wdur_loss * word_nonpadding).sum() / word_nonpadding.sum()
+            if not torch.isnan(wdur_loss).all():
                 losses["wdur"] = wdur_loss * self.loss_config["lambda_word_dur"]
         if self.loss_config["lambda_sent_dur"] > 0:
             sent_dur_p = dur_pred.sum(-1)
@@ -213,6 +213,8 @@ class E2ETTSLoss(nn.Module):
         total_loss = (
             sum(duration_loss.values()) + sum(pitch_loss.values()) + energy_loss + ctc_loss + bin_loss
         )
+        if torch.isnan(total_loss).all():
+            import ipdb; ipdb.set_trace()
 
         return (
             total_loss,

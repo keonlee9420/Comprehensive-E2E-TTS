@@ -207,7 +207,8 @@ class Preprocessor:
         _, index = librosa.effects.trim(data, top_db=self.trim_top_db, frame_length=self.filter_length, hop_length=self.hop_length)
         data = data[index[0]:index[1]]
         data = self.match_librosa_to_scipy(data)
-        return data, sampling_rate
+        duration = (index[1] - index[0]) / self.hop_length
+        return data, sampling_rate, int(duration)
 
     def beta_binomial_prior_distribution(self, phoneme_count, mel_count, scaling_factor=1.0):
         P, M = phoneme_count, mel_count
@@ -246,7 +247,7 @@ class Preprocessor:
         if not os.path.isfile(os.path.join(self.out_dir, "wav", wav_filename)):
 
             # _, wav = self.load_audio(wav_path)
-            wav, sampling_rate = self.load_wav(wav_path)
+            wav, sampling_rate, duration = self.load_wav(wav_path)
 
             # wav = wav / max(abs(wav)) * self.max_wav_value
             wav = wav / self.max_wav_value
@@ -266,6 +267,8 @@ class Preprocessor:
             # Compute mel-scale spectrogram
             # mel_spectrogram, _ = Audio.tools.get_mel_from_wav(wav, self.STFT)
             mel_spectrogram, energy = [x.squeeze(0).numpy() for x in self.TorchSTFT(torch.from_numpy(wav).float().unsqueeze(0), return_energy=True)]
+            mel_spectrogram = mel_spectrogram[:, : duration]
+            energy = energy[: duration]
 
             np.save(
                 os.path.join(self.out_dir, "mel", mel_filename),
@@ -280,6 +283,8 @@ class Preprocessor:
         # Load f0
         if not os.path.isfile(os.path.join(self.out_dir, "f0", f0_filename)):
             f0, _ = self.get_pitch(wav, mel_spectrogram.T)
+            f0 = f0[: duration]
+
             np.save(os.path.join(self.out_dir, "f0", f0_filename), f0)
         else:
             f0 = np.load(os.path.join(self.out_dir, "f0", f0_filename))
